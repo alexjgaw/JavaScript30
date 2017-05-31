@@ -12,6 +12,7 @@
         <div class="hand hour-hand"></div>
         <div class="hand min-hand"></div>
         <div class="hand second-hand"></div>
+        <div class="middle"></div>
       </div>
     </div>
 
@@ -56,18 +57,149 @@
       transform: translateY(-3px); /* account for the height of the clock hands */
     }
 
+    .middle {
+      width: 10px;
+      height: 10px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      margin-top: -5px;
+      left: 50%;
+      margin-left: -5px;
+      z-index: 1;
+      -webkit-box-shadow: 0px 0px 0px 2px rgba(0,0,0,1);
+      -moz-box-shadow: 0px 0px 0px 2px rgba(0,0,0,1);
+      box-shadow: 0px 0px 0px 2px rgba(0,0,0,1);
+    }
+
     .hand {
       width:50%;
       height:6px;
       background:black;
       position: absolute;
       top:50%;
+      margin-top: -3px;
+      right:50%;
+      transform-origin: 100%;
+      transform: rotate(90deg);
+      transition-property: all;
+      transition-duration: 0.05s;
+      transition-timing-function: cubic-bezier(0.04, 2.9, 0.58, 1);
+      z-index: 0;
+    }
+
+    .second-hand {
+      height: 3px;
+      margin-top: -1px;
+    }
+
+    .hour-hand {
+      width: 35%;
+    }
+
+    .slot {
+      transform-origin: 100%;
+      transform: rotate(90deg);
+      width: 64%;
+      height: 10px;
+      top: 50%;
+      right: 50%;
+      margin-top: -3px;
+      position: absolute;
+    }
+
+    .hour-mark {
+      width: 9%;
+      height: 10px;
+      margin-left: 5px;
+      background:black;
+    }
+
+    .second-mark {
+      width: 7%;
+      height: 4px;
+      margin-left: 7px;
+      background: black;
+    }
+
+    .hour-num {
+      transform: rotate(-90deg);
+      position: absolute;
+      width: 42%;
+      margin-top: -6px;
     }
 
   </style>
 
   <script>
+  const clock = document.querySelector('.clock');
+  const clockFace = document.querySelector('.clock-face');
 
+  // Add hour marks
+  for (let i = 1; i <= 12; i++) {
+    // Create slot and mark
+    const newSlot = document.createElement('div');
+    const newMark = document.createElement('div');
+    newSlot.classList.add('slot');
+    newMark.classList.add('hour-mark');
+
+    // Create numbers
+    const hourNum = document.createElement('div');
+    const num = document.createTextNode(i);
+    hourNum.classList.add('hour-num');
+    hourNum.appendChild(num);
+    newMark.appendChild(hourNum);
+
+    // Add rotation style for each slot
+    newSlot.style.transform = `rotate(${(i * 30) + 90}deg)`;
+    newSlot.appendChild(newMark);
+
+    clockFace.appendChild(newSlot);
+  }
+
+  // Add second marks
+  for (let i = 1; i <= 60; i++) {
+    const newSlot = document.createElement('div');
+    const newMark = document.createElement('div');
+    newSlot.classList.add('slot');
+    newMark.classList.add('second-mark');
+
+    // Add rotation style for each slot and add mark
+    newSlot.style.transform = `rotate(${((i / 60) * 360) - 1}deg)`; // I'm sure there's a more elegant way to fix the offset. It's late.
+    newSlot.appendChild(newMark);
+
+    clockFace.appendChild(newSlot);
+  }
+
+  const secondHand = document.querySelector('.second-hand');
+  const minHand = document.querySelector('.min-hand');
+  const hourHand = document.querySelector('.hour-hand');
+
+
+
+  function setDate() {
+
+    const now = new Date();
+    const seconds = now.getSeconds();
+    const secondsDegrees = ((seconds / 60) * 360) + 90;
+    secondHand.style.transitionDuration = (secondsDegrees === 90) ? '0s' : '0.05s'; // This is when it resets. Change transitionDuration to 0 so it doesn't show blip during transition.
+    secondHand.style.transform = `rotate(${secondsDegrees}deg)`;
+
+    const mins = now.getMinutes();
+    const minsDegrees = ((mins / 60) * 360) + 90;
+    minHand.style.transitionDuration = (minsDegrees === 90) ? '0s' : '0.05s'; // This is when it resets. Change transitionDuration to 0 so it doesn't show blip during transition.
+    minHand.style.transform = `rotate(${minsDegrees}deg)`;
+
+    const minuteOffset = ((minsDegrees - 90) / 72) * 6; // Degrees to add to hour
+
+    const hours = now.getHours();
+    const hoursDegrees = (((hours / 12) * 360) + 90) + minuteOffset;
+    hourHand.style.transitionDuration = (hoursDegrees === 90) ? '0s' : '0.05s'; // This is when it resets. Change transitionDuration to 0 so it doesn't show blip during transition.
+    hourHand.style.transform = `rotate(${hoursDegrees}deg)`;
+  }
+
+  var someInterval = setInterval(setDate, 1000);
 
   </script>
 </body>
